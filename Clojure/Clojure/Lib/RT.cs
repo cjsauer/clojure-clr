@@ -636,8 +636,18 @@ namespace clojure.lang
             //Stopwatch sw = new Stopwatch();
             //sw.Start();
             load("clojure/core");
-            Assembly.LoadFrom("clojure.spec.alpha.dll");
-            Assembly.LoadFrom("clojure.core.specs.alpha.dll");
+
+            string unityCljPath = Environment.GetEnvironmentVariable("UNITY_CLJ_LOAD_PATH");
+            if (unityCljPath != null)
+            {
+                Assembly.LoadFrom(Path.Combine(unityCljPath, "clojure.spec.alpha.dll"));
+                Assembly.LoadFrom(Path.Combine(unityCljPath, "clojure.core.specs.alpha.dll"));
+            }
+            else
+            {
+                Assembly.LoadFrom("clojure.spec.alpha.dll");
+                Assembly.LoadFrom("clojure.core.specs.alpha.dll");
+            }
             //sw.Stop();
             //Console.WriteLine("Initial clojure/core load: {0} milliseconds.", sw.ElapsedMilliseconds);
 
@@ -3654,8 +3664,12 @@ namespace clojure.lang
 
         static IEnumerable<string> GetFindFilePathsRaw()
         {
-            yield return System.AppDomain.CurrentDomain.BaseDirectory;
-            yield return Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "bin");
+            //yield return System.AppDomain.CurrentDomain.BaseDirectory;
+            //yield return Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "bin");
+            string unityCljPath = Environment.GetEnvironmentVariable("UNITY_CLJ_LOAD_PATH");
+            if (unityCljPath != null)
+                yield return unityCljPath;
+
             yield return Directory.GetCurrentDirectory();
             yield return Path.GetDirectoryName(typeof(RT).Assembly.Location);
 
@@ -3663,7 +3677,7 @@ namespace clojure.lang
             if ( assy != null )
                 yield return Path.GetDirectoryName(assy.Location);
 
-            string rawpaths = (string)System.Environment.GetEnvironmentVariable(ClojureLoadPathString);
+            string rawpaths = Environment.GetEnvironmentVariable(ClojureLoadPathString);
             if (rawpaths == null)
                 yield break;
 
